@@ -272,7 +272,7 @@ const Index = () => {
 
           <div className="pt-8 border-t border-zinc-900/50">
             <p className="text-sm text-zinc-500 mb-2">
-              <span className="text-orange-400 font-medium">Aniketh Shetty</span> • Premium Design Studio • Bangalore
+              <span className="text-orange-400 font-medium">Aniketh Shet</span> • Premium Design Studio • Bangalore
             </p>
             <p className="text-xs text-zinc-600">
               Personal response within 24 hours • Complimentary consultation included
