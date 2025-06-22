@@ -21,7 +21,7 @@ import SudoMode from "./components/SudoMode";
 import DynamicGradients from "./components/DynamicGradients";
 import EasterEggs from "./components/EasterEggs";
 import FloatingElements from "./components/FloatingElements";
-import MetaverseHUD from "./components/MetaverseHUD";
+import PremiumStatusBar from "./components/PremiumStatusBar";
 import ParallaxBackground from "./components/ParallaxBackground";
 import { AuthProvider } from "./contexts/AuthContext";
 
@@ -39,7 +39,7 @@ const App = () => (
             <DynamicGradients />
             <BackgroundParticles />
             <FloatingElements />
-            <MetaverseHUD />
+            <PremiumStatusBar />
             <EasterEggs />
             <Routes>
               <Route path="/" element={<Index />} />

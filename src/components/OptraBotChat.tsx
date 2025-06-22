@@ -51,18 +51,20 @@ const OptraBotChat: React.FC<OptraBotChatProps> = ({
           >
             <div className={`flex items-start gap-2 max-w-[85%] ${message.isBot ? 'flex-row' : 'flex-row-reverse'}`}>
               <div className={`w-7 h-7 rounded-full flex items-center justify-center flex-shrink-0 mt-1 ${
-                message.isBot ? 'bg-optra-gradient' : 'bg-gray-600'
+                message.isBot ? 'bg-gradient-to-r from-orange-500 to-pink-500' : 'bg-gray-600'
               }`}>
-                {message.isBot ? <Bot size={14} /> : <User size={14} />}
+                {message.isBot ? <Bot size={14} className="text-white" /> : <User size={14} className="text-white" />}
               </div>
               <div
                 className={`p-3 rounded-2xl break-words ${
                   message.isBot
                     ? 'bg-gray-800 text-white border border-gray-600/50'
-                    : 'bg-optra-gradient text-white'
+                    : 'bg-gradient-to-r from-orange-500 to-pink-500 text-white'
                 }`}
               >
-                <p className="text-sm leading-relaxed text-white">{message.text}</p>
+                <div className="flex items-center justify-center text-center">
+                  <p className="text-sm leading-relaxed text-white">{message.text}</p>
+                </div>
               </div>
             </div>
           </div>
@@ -71,11 +73,11 @@ const OptraBotChat: React.FC<OptraBotChatProps> = ({
         {isTyping && (
           <div className="flex justify-start">
             <div className="flex items-start gap-2 max-w-[85%]">
-              <div className="w-7 h-7 rounded-full bg-optra-gradient flex items-center justify-center flex-shrink-0 mt-1">
-                <Bot size={14} />
+              <div className="w-7 h-7 rounded-full bg-gradient-to-r from-orange-500 to-pink-500 flex items-center justify-center flex-shrink-0 mt-1">
+                <Bot size={14} className="text-white" />
               </div>
               <div className="bg-gray-800 p-3 rounded-2xl border border-gray-600/50">
-                <div className="flex gap-1">
+                <div className="flex items-center justify-center gap-1">
                   <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce"></div>
                   <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '0.1s' }}></div>
                   <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '0.2s' }}></div>
@@ -88,7 +90,7 @@ const OptraBotChat: React.FC<OptraBotChatProps> = ({
       </div>
 
       <div className="p-3 border-t border-gray-600/50 flex-shrink-0">
-        <div className="flex flex-wrap gap-1 mb-3">
+        <div className="flex flex-wrap gap-1 mb-3 justify-center">
           {quickReplies.slice(0, isMobile ? 2 : 3).map((reply, index) => (
             <button
               key={index}
@@ -106,12 +108,12 @@ const OptraBotChat: React.FC<OptraBotChatProps> = ({
             value={inputText}
             onChange={(e) => setInputText(e.target.value)}
             onKeyPress={(e) => e.key === 'Enter' && inputText.trim() && onSendMessage(inputText)}
-            placeholder="Ask me about Optra's services..."
-            className="flex-1 bg-gray-800 border border-gray-600 rounded-full px-4 py-2 text-sm text-white focus:outline-none focus:border-gray-400 transition-colors placeholder-gray-400"
+            placeholder="Ask me about Optra's premium services..."
+            className="flex-1 bg-gray-800 border border-gray-600 rounded-full px-4 py-2 text-sm text-white focus:outline-none focus:border-gray-400 transition-colors placeholder-gray-400 text-center"
           />
           <button
             onClick={() => inputText.trim() && onSendMessage(inputText)}
-            className="w-10 h-10 bg-optra-gradient rounded-full flex items-center justify-center hover:scale-105 transition-transform duration-200"
+            className="w-10 h-10 bg-gradient-to-r from-orange-500 to-pink-500 rounded-full flex items-center justify-center hover:scale-105 transition-transform duration-200"
           >
             <Send size={16} className="text-white" />
           </button>
