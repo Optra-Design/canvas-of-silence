@@ -96,9 +96,16 @@ const Founder = () => {
               </div>
               
               <div className="relative">
-                <div className="w-64 h-64 mx-auto bg-optra-gradient rounded-full flex items-center justify-center text-8xl font-bold text-white">
-                  A
+                <div className="relative w-64 h-64 mx-auto rounded-full overflow-hidden border-4 border-gradient-to-r from-orange-500 to-pink-500">
+                  <img 
+                    src="/lovable-uploads/6ebba5e7-727d-45be-b294-9711dfac2862.png"
+                    alt="Aniketh Shet - Founder of Optra Design"
+                    className="w-full h-full object-cover"
+                  />
                 </div>
+                <p className="text-xs text-foreground/60 text-center mt-3 italic">
+                  "Proof that great design vision starts early - though the execution has definitely improved since then! 😄"
+                </p>
                 <div className="absolute -top-4 -right-4 w-16 h-16 bg-yellow-400 rounded-full flex items-center justify-center animate-bounce-subtle">
                   ✨
                 </div>
@@ -175,7 +182,7 @@ const Founder = () => {
                 and connections that last. Every pixel should have a purpose, 
                 every interaction should feel intentional."
               </blockquote>
-              <cite className="text-gradient font-semibold">— Aniketh, Founder of Optra</cite>
+              <cite className="text-gradient font-semibold">— Aniketh Shet, Founder of Optra</cite>
             </div>
           </div>
 
