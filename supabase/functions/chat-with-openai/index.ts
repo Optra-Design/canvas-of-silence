@@ -2,7 +2,7 @@
 import "https://deno.land/x/xhr@0.1.0/mod.ts";
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 
-const openAIApiKey = Deno.env.get('OPENAI_API_KEY');
+const geminiApiKey = "AIzaSyB3mhZPJxMBWM-hET3KV3bneus7rrrC05o";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -17,18 +17,36 @@ serve(async (req) => {
   try {
     const { messages } = await req.json();
 
-    const response = await fetch('https://api.openai.com/v1/chat/completions', {
+    // Convert messages to Gemini format
+    const geminiMessages = messages.map((msg: any) => {
+      if (msg.role === 'system') {
+        return {
+          role: 'user',
+          parts: [{ text: `System: ${msg.content}` }]
+        };
+      }
+      return {
+        role: msg.role === 'assistant' ? 'model' : 'user',
+        parts: [{ text: msg.content }]
+      };
+    });
+
+    const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${geminiApiKey}`, {
       method: 'POST',
       headers: {
-        'Authorization': `Bearer ${openAIApiKey}`,
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        model: 'gpt-4o-mini',
-        messages: [
-          {
-            role: 'system',
-            content: `You are OptraBot, the brilliant AI assistant for Optra Design Studio! You have an amazing personality - you're:
+        contents: geminiMessages,
+        generationConfig: {
+          temperature: 0.8,
+          topK: 40,
+          topP: 0.95,
+          maxOutputTokens: 300,
+        },
+        systemInstruction: {
+          parts: [{
+            text: `You are OptraBot, the brilliant AI assistant for Optra Design Studio! You have an amazing personality - you're:
 
 🎯 PERSONALITY TRAITS:
 - Enthusiastic and inspiring, but never overwhelming
@@ -67,28 +85,23 @@ serve(async (req) => {
 - Create curiosity about working with Aniketh
 
 Remember: You're not just answering questions - you're inspiring potential clients and showcasing why Optra Design is the perfect partner for their creative vision!`
-          },
-          ...messages
-        ],
-        max_tokens: 300,
-        temperature: 0.8,
-        presence_penalty: 0.6,
-        frequency_penalty: 0.3,
+          }]
+        }
       }),
     });
 
     if (!response.ok) {
-      throw new Error(`OpenAI API error: ${response.status}`);
+      throw new Error(`Gemini API error: ${response.status}`);
     }
 
     const data = await response.json();
-    const reply = data.choices[0]?.message?.content || "I'm having trouble thinking right now. Let me try again!";
+    const reply = data.candidates?.[0]?.content?.parts?.[0]?.text || "I'm having trouble thinking right now. Let me try again!";
 
     return new Response(JSON.stringify({ reply }), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     });
   } catch (error) {
-    console.error('Error in chat-with-openai function:', error);
+    console.error('Error in chat-with-gemini function:', error);
     return new Response(JSON.stringify({ 
       error: "I'm experiencing some technical difficulties. Please try again, or reach out to aniketh@optra.me directly!" 
     }), {

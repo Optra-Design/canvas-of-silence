@@ -14,7 +14,7 @@ interface LLMResponse {
 
 class APILLMService {
   private apiKey: string | null = null;
-  private encryptedDefaultKey = 'KDcwPC1mQ0JGRTwxY0RGREIzZUJGVkcxZUNGREczZGRGRVIwZUNGRUkwZURGRkQzZURGRkk0ZERCR0Y2ZERCRUY1ZENGREc3ZERCVEM5ZERCUzllREVGSzFlREVGRTBlREVGSjFlREVGRDFlREVGQjNlREdGSjFlREdGNWVERkRHOWVEQkZHNWVEREZHNWVEREZHNWVEREZHNWVEREZHNWVEREZHNWVEREZHOWVEQkZSOWVEQkZTOWVEQkZHOWVEQkZHNWVEREZGNWVEREdGNWVEREZHNWVEREZHOWVEQUZHOWVEQkZHNWVEREZHOWVEQUZHOWVEQUZHNWVEREZHNWVEREZHNWVEREZHNWVEREZHNWVEREZHNWVEREZHOWVEQkZSOWVEQkY=';
+  private encryptedDefaultKey = 'QUl6YVN5QjNtaFpQSnhNQldNLWhFVDNLVjNibmV1czdycnJDMDVv';
 
   constructor() {
     this.initializeDefaultKey();
@@ -60,18 +60,36 @@ class APILLMService {
     }
 
     try {
-      const response = await fetch('https://api.openai.com/v1/chat/completions', {
+      // Convert messages to Gemini format
+      const geminiMessages = messages.slice(-10).map(msg => {
+        if (msg.role === 'system') {
+          return {
+            role: 'user',
+            parts: [{ text: `System: ${msg.content}` }]
+          };
+        }
+        return {
+          role: msg.role === 'assistant' ? 'model' : 'user',
+          parts: [{ text: msg.content }]
+        };
+      });
+
+      const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`, {
         method: 'POST',
         headers: {
-          'Authorization': `Bearer ${apiKey}`,
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          model: 'gpt-4o-mini',
-          messages: [
-            {
-              role: 'system',
-              content: `You are OptraBot, the intelligent AI assistant created exclusively for Optra Design Studio. You represent Aniketh and Optra's expertise.
+          contents: geminiMessages,
+          generationConfig: {
+            temperature: 0.7,
+            topK: 40,
+            topP: 0.95,
+            maxOutputTokens: 150,
+          },
+          systemInstruction: {
+            parts: [{
+              text: `You are OptraBot, the intelligent AI assistant created exclusively for Optra Design Studio. You represent Aniketh and Optra's expertise.
 
 ABOUT OPTRA DESIGN STUDIO:
 - Founded by Aniketh in Bangalore, India
@@ -113,11 +131,8 @@ PERSONALITY:
 - Never mention external AI providers - you are Optra's own technology
 
 For pricing information, always direct users to contact Aniketh directly at aniketh@optra.me for custom quotes.`
-            },
-            ...messages.slice(-10)
-          ],
-          max_tokens: 150,
-          temperature: 0.7,
+            }]
+          }
         }),
       });
 
@@ -126,7 +141,7 @@ For pricing information, always direct users to contact Aniketh directly at anik
       }
 
       const data = await response.json();
-      const botResponse = data.choices[0]?.message?.content || '';
+      const botResponse = data.candidates?.[0]?.content?.parts?.[0]?.text || '';
 
       if (!botResponse) {
         return this.getFallbackResponse(messages[messages.length - 1].content);
