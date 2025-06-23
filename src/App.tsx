@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
 import Index from './pages/Index';
@@ -13,17 +14,19 @@ import Lab from './pages/Lab';
 import Minigames from './pages/Minigames';
 import NotFound from './pages/NotFound';
 import Test404 from './pages/Test404';
-import { ThemeProvider } from './components/ThemeProvider';
-import { AuthProvider } from './context/AuthContext';
-import { UserProvider } from './context/UserContext';
-import { QueryClient } from "react-query";
+import { ThemeProvider } from './components/theme-provider';
+import { AuthProvider } from './contexts/AuthContext';
+import { UserProvider } from './contexts/UserContext';
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from 'sonner'
 import EnhancedOptraBot from './components/EnhancedOptraBot';
 import FounderChatBubble from './components/FounderChatBubble';
 
+const queryClient = new QueryClient();
+
 function App() {
   return (
-    <QueryClient>
+    <QueryClientProvider client={queryClient}>
       <UserProvider>
         <AuthProvider>
           <Router>
@@ -57,7 +60,7 @@ function App() {
           </Router>
         </AuthProvider>
       </UserProvider>
-    </QueryClient>
+    </QueryClientProvider>
   );
 }
 
