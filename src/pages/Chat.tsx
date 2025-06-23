@@ -10,27 +10,58 @@ import { Textarea } from '../components/ui/textarea';
 import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/card';
 import { toast } from 'sonner';
 
+interface Message {
+  id: string;
+  content: string;
+  sender: string;
+  timestamp: string;
+  isFromFounder: boolean;
+}
+
 const Chat = () => {
   const { user } = useAuth();
-  const { userProfile } = useUser();
+  const { currentUser } = useUser();
   const [message, setMessage] = useState('');
-  const [messages, setMessages] = useState<any[]>([]);
+  const [messages, setMessages] = useState<Message[]>([]);
   const [isLoading, setIsLoading] = useState(false);
+
+  // Load messages from localStorage on component mount
+  useEffect(() => {
+    const savedMessages = localStorage.getItem('founder-chat-messages');
+    if (savedMessages) {
+      try {
+        setMessages(JSON.parse(savedMessages));
+      } catch (error) {
+        console.error('Failed to load messages:', error);
+      }
+    }
+  }, []);
+
+  // Save messages to localStorage whenever messages change
+  useEffect(() => {
+    if (messages.length > 0) {
+      localStorage.setItem('founder-chat-messages', JSON.stringify(messages));
+    }
+  }, [messages]);
 
   const handleSendMessage = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!message.trim() || !user) {
-      toast.error('Please log in and enter a message');
+    if (!message.trim()) {
+      toast.error('Please enter a message');
+      return;
+    }
+
+    if (!user && !currentUser) {
+      toast.error('Please log in to send messages');
       return;
     }
 
     setIsLoading(true);
     try {
-      // Here you would typically send the message to your backend
-      const newMessage = {
-        id: Date.now(),
-        content: message,
-        sender: userProfile?.display_name || user.email,
+      const newMessage: Message = {
+        id: Date.now().toString(),
+        content: message.trim(),
+        sender: currentUser?.name || user?.email || 'Anonymous',
         timestamp: new Date().toISOString(),
         isFromFounder: false
       };
@@ -38,8 +69,23 @@ const Chat = () => {
       setMessages(prev => [...prev, newMessage]);
       setMessage('');
       toast.success('Message sent to Aniketh!');
+
+      // Simulate founder response after a delay (for demo purposes)
+      setTimeout(() => {
+        const founderReply: Message = {
+          id: (Date.now() + 1).toString(),
+          content: "Thanks for reaching out! I'll get back to you soon with a detailed response.",
+          sender: 'Aniketh Shet',
+          timestamp: new Date().toISOString(),
+          isFromFounder: true
+        };
+        setMessages(prev => [...prev, founderReply]);
+        toast.success('Aniketh replied!');
+      }, 2000);
+
     } catch (error) {
       toast.error('Failed to send message');
+      console.error('Error sending message:', error);
     } finally {
       setIsLoading(false);
     }
@@ -89,31 +135,34 @@ const Chat = () => {
                     </div>
                   </div>
 
-                  {/* User Messages */}
-                  {messages.map((msg) => (
-                    <div key={msg.id} className={`flex gap-3 ${msg.isFromFounder ? 'justify-start' : 'justify-end'}`}>
-                      {msg.isFromFounder && (
-                        <div className="w-8 h-8 bg-gradient-to-r from-blue-500 to-purple-600 rounded-full flex items-center justify-center flex-shrink-0">
-                          <User className="w-4 h-4 text-white" />
+                  {/* Messages */}
+                  <div className="max-h-96 overflow-y-auto space-y-4">
+                    {messages.map((msg) => (
+                      <div key={msg.id} className={`flex gap-3 ${msg.isFromFounder ? 'justify-start' : 'justify-end'}`}>
+                        {msg.isFromFounder && (
+                          <div className="w-8 h-8 bg-gradient-to-r from-blue-500 to-purple-600 rounded-full flex items-center justify-center flex-shrink-0">
+                            <User className="w-4 h-4 text-white" />
+                          </div>
+                        )}
+                        <div className={`max-w-xs lg:max-w-md px-4 py-2 rounded-lg ${
+                          msg.isFromFounder 
+                            ? 'bg-white/10 text-left' 
+                            : 'bg-gradient-to-r from-blue-500 to-purple-600 text-white text-right'
+                        }`}>
+                          <p className="text-sm font-medium mb-1">{msg.sender}</p>
+                          <p className="text-sm">{msg.content}</p>
+                          <p className="text-xs opacity-70 mt-1">
+                            {new Date(msg.timestamp).toLocaleTimeString()}
+                          </p>
                         </div>
-                      )}
-                      <div className={`max-w-xs lg:max-w-md px-4 py-2 rounded-lg ${
-                        msg.isFromFounder 
-                          ? 'bg-white/10 text-left' 
-                          : 'bg-gradient-to-r from-blue-500 to-purple-600 text-white text-right'
-                      }`}>
-                        <p className="text-sm">{msg.content}</p>
-                        <p className="text-xs opacity-70 mt-1">
-                          {new Date(msg.timestamp).toLocaleTimeString()}
-                        </p>
+                        {!msg.isFromFounder && (
+                          <div className="w-8 h-8 bg-white/20 rounded-full flex items-center justify-center flex-shrink-0">
+                            <User className="w-4 h-4" />
+                          </div>
+                        )}
                       </div>
-                      {!msg.isFromFounder && (
-                        <div className="w-8 h-8 bg-white/20 rounded-full flex items-center justify-center flex-shrink-0">
-                          <User className="w-4 h-4" />
-                        </div>
-                      )}
-                    </div>
-                  ))}
+                    ))}
+                  </div>
 
                   {/* Message Input */}
                   <form onSubmit={handleSendMessage} className="flex gap-2 pt-4 border-t border-white/10">
@@ -122,18 +171,18 @@ const Chat = () => {
                       onChange={(e) => setMessage(e.target.value)}
                       placeholder="Type your message..."
                       className="flex-1 min-h-[60px] resize-none"
-                      disabled={!user}
+                      disabled={!user && !currentUser}
                     />
                     <Button 
                       type="submit" 
-                      disabled={isLoading || !message.trim() || !user}
+                      disabled={isLoading || !message.trim() || (!user && !currentUser)}
                       className="bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700"
                     >
                       <Send className="w-4 h-4" />
                     </Button>
                   </form>
 
-                  {!user && (
+                  {!user && !currentUser && (
                     <p className="text-center text-foreground/60 text-sm">
                       Please log in to send messages
                     </p>
@@ -169,6 +218,20 @@ const Chat = () => {
                     I typically respond within 24 hours. For urgent matters, 
                     feel free to reach out via email as well.
                   </p>
+                </CardContent>
+              </Card>
+
+              <Card className="glass">
+                <CardHeader>
+                  <CardTitle className="text-lg">Chat Features</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <ul className="text-foreground/70 text-sm space-y-2">
+                    <li>• Real-time messaging</li>
+                    <li>• Message history saved locally</li>
+                    <li>• Auto-responses for demos</li>
+                    <li>• Authentication required</li>
+                  </ul>
                 </CardContent>
               </Card>
             </div>
