@@ -100,54 +100,6 @@ const Services = () => {
             </p>
           </div>
 
-          {/* Featured Work Showcase */}
-          <div className="mb-24">
-            <div className="text-center mb-12">
-              <h2 className="text-3xl md:text-4xl font-bold text-gradient mb-4">
-                Featured Work
-              </h2>
-              <p className="text-foreground/70 max-w-2xl mx-auto">
-                Real projects that showcase our design expertise and client success stories.
-              </p>
-            </div>
-
-            <div className="grid lg:grid-cols-2 gap-12 items-center">
-              <div className="space-y-6">
-                <div className="glass p-6 rounded-2xl">
-                  <h3 className="text-2xl font-bold text-gradient mb-3">Nyve Design</h3>
-                  <p className="text-foreground/70 mb-4">
-                    Strategic social media marketing campaign for a creative design agency to boost brand awareness and engagement.
-                  </p>
-                  <div className="flex flex-wrap gap-2 mb-4">
-                    <span className="px-3 py-1 bg-purple-500/20 text-purple-400 rounded-full text-sm">Social Media</span>
-                    <span className="px-3 py-1 bg-blue-500/20 text-blue-400 rounded-full text-sm">Content Strategy</span>
-                    <span className="px-3 py-1 bg-green-500/20 text-green-400 rounded-full text-sm">Brand Promotion</span>
-                  </div>
-                  <a 
-                    href="https://www.nyvedesign.com" 
-                    target="_blank" 
-                    rel="noopener noreferrer"
-                    className="inline-flex items-center gap-2 text-gradient font-semibold hover:gap-3 transition-all duration-300"
-                  >
-                    Visit Their Site
-                    <ArrowRight className="w-4 h-4" />
-                  </a>
-                </div>
-              </div>
-
-              <div className="relative">
-                <div className="aspect-video bg-zinc-900 border border-zinc-800 rounded-2xl overflow-hidden relative group hover:scale-105 transition-transform duration-300">
-                  <img 
-                    src="/lovable-uploads/67b4cc52-5a7d-48bb-a24d-a7ff5c22d39d.png"
-                    alt="Nyve Design Website Screenshot"
-                    className="w-full h-full object-cover"
-                  />
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-                </div>
-              </div>
-            </div>
-          </div>
-
           {/* Services Grid */}
           <div className="grid lg:grid-cols-2 gap-8 mb-24">
             {services.map((service, index) => (

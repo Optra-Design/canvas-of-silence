@@ -1,66 +1,64 @@
+import React from 'react';
+import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
+import Index from './pages/Index';
+import About from './pages/About';
+import Services from './pages/Services';
+import Work from './pages/Work';
+import Contact from './pages/Contact';
+import Founder from './pages/Founder';
+import Chat from './pages/Chat';
+import Blog from './pages/Blog';
+import Pulse from './pages/Pulse';
+import Lab from './pages/Lab';
+import Minigames from './pages/Minigames';
+import NotFound from './pages/NotFound';
+import Test404 from './pages/Test404';
+import { ThemeProvider } from './components/ThemeProvider';
+import { AuthProvider } from './context/AuthContext';
+import { UserProvider } from './context/UserContext';
+import { QueryClient } from "react-query";
+import { Toaster } from 'sonner'
+import EnhancedOptraBot from './components/EnhancedOptraBot';
+import FounderChatBubble from './components/FounderChatBubble';
 
-import { Toaster } from "@/components/ui/toaster";
-import { Toaster as Sonner } from "@/components/ui/sonner";
-import { TooltipProvider } from "@/components/ui/tooltip";
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
-import Index from "./pages/Index";
-import About from "./pages/About";
-import Services from "./pages/Services";
-import Contact from "./pages/Contact";
-import NotFound from "./pages/NotFound";
-import Lab from "./pages/Lab";
-import Pulse from "./pages/Pulse";
-import Founder from "./pages/Founder";
-import Blog from "./pages/Blog";
-import Test404 from "./pages/Test404";
-import Minigames from "./pages/Minigames";
-import BackgroundParticles from "./components/BackgroundParticles";
-import EnhancedOptraBot from "./components/EnhancedOptraBot";
-import SudoMode from "./components/SudoMode";
-import DynamicGradients from "./components/DynamicGradients";
-import EasterEggs from "./components/EasterEggs";
-import FloatingElements from "./components/FloatingElements";
-import PremiumStatusBar from "./components/PremiumStatusBar";
-import ParallaxBackground from "./components/ParallaxBackground";
-import { AuthProvider } from "./contexts/AuthContext";
-
-const queryClient = new QueryClient();
-
-const App = () => (
-  <QueryClientProvider client={queryClient}>
-    <TooltipProvider>
-      <AuthProvider>
-        <Toaster />
-        <Sonner />
-        <BrowserRouter>
-          <div className="relative min-h-screen bg-background overflow-hidden">
-            <ParallaxBackground />
-            <DynamicGradients />
-            <BackgroundParticles />
-            <FloatingElements />
-            <PremiumStatusBar />
-            <EasterEggs />
-            <Routes>
-              <Route path="/" element={<Index />} />
-              <Route path="/about" element={<About />} />
-              <Route path="/services" element={<Services />} />
-              <Route path="/contact" element={<Contact />} />
-              <Route path="/lab" element={<Lab />} />
-              <Route path="/pulse" element={<Pulse />} />
-              <Route path="/founder" element={<Founder />} />
-              <Route path="/blog" element={<Blog />} />
-              <Route path="/minigames" element={<Minigames />} />
-              <Route path="/test-404" element={<Test404 />} />
-              <Route path="*" element={<NotFound />} />
-            </Routes>
-            <EnhancedOptraBot />
-            <SudoMode />
-          </div>
-        </BrowserRouter>
-      </AuthProvider>
-    </TooltipProvider>
-  </QueryClientProvider>
-);
+function App() {
+  return (
+    <QueryClient>
+      <UserProvider>
+        <AuthProvider>
+          <Router>
+            <ThemeProvider defaultTheme="dark" storageKey="vite-ui-theme">
+              <div className="relative min-h-screen bg-zinc-950 text-white">
+                <Routes>
+                  <Route path="/" element={<Index />} />
+                  <Route path="/about" element={<About />} />
+                  <Route path="/services" element={<Services />} />
+                  <Route path="/work" element={<Work />} />
+                  <Route path="/contact" element={<Contact />} />
+                  <Route path="/founder" element={<Founder />} />
+                  <Route path="/chat" element={<Chat />} />
+                  <Route path="/blog" element={<Blog />} />
+                  <Route path="/pulse" element={<Pulse />} />
+                  <Route path="/lab" element={<Lab />} />
+                  <Route path="/minigames" element={<Minigames />} />
+                  <Route path="/404test" element={<Test404 />} />
+                  <Route path="*" element={<NotFound />} />
+                </Routes>
+                
+                {/* Chat bubbles positioned properly */}
+                <div className="fixed bottom-6 right-6 z-50 flex items-center justify-center">
+                  <EnhancedOptraBot />
+                </div>
+                <FounderChatBubble />
+                
+                <Toaster />
+              </div>
+            </ThemeProvider>
+          </Router>
+        </AuthProvider>
+      </UserProvider>
+    </QueryClient>
+  );
+}
 
 export default App;
