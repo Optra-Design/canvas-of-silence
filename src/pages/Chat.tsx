@@ -5,44 +5,79 @@ import { Send, MessageCircle, User } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import { useUser } from '../contexts/UserContext';
 import { Button } from '../components/ui/button';
-import { Input } from '../components/ui/input';
 import { Textarea } from '../components/ui/textarea';
 import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/card';
 import { toast } from 'sonner';
+import { supabase } from '../integrations/supabase/client';
 
 interface Message {
   id: string;
   content: string;
-  sender: string;
-  timestamp: string;
-  isFromFounder: boolean;
+  sender_name: string;
+  sender_email: string;
+  created_at: string;
+  is_from_founder: boolean;
+  is_read: boolean;
 }
 
 const Chat = () => {
-  const { user } = useAuth();
+  const { user, profile, isLoggedIn } = useAuth();
   const { currentUser } = useUser();
   const [message, setMessage] = useState('');
   const [messages, setMessages] = useState<Message[]>([]);
   const [isLoading, setIsLoading] = useState(false);
+  const [userEmail, setUserEmail] = useState('');
+  const [userName, setUserName] = useState('');
 
-  // Load messages from localStorage on component mount
-  useEffect(() => {
-    const savedMessages = localStorage.getItem('founder-chat-messages');
-    if (savedMessages) {
-      try {
-        setMessages(JSON.parse(savedMessages));
-      } catch (error) {
-        console.error('Failed to load messages:', error);
+  const isFounder = profile?.email === 'aniketh@optra.me' || user?.email === 'aniketh@optra.me';
+
+  // Load messages from Supabase
+  const loadMessages = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('founder_chat_messages')
+        .select('*')
+        .order('created_at', { ascending: true });
+
+      if (error) {
+        console.error('Error loading messages:', error);
+        return;
       }
-    }
-  }, []);
 
-  // Save messages to localStorage whenever messages change
-  useEffect(() => {
-    if (messages.length > 0) {
-      localStorage.setItem('founder-chat-messages', JSON.stringify(messages));
+      setMessages(data || []);
+    } catch (error) {
+      console.error('Error loading messages:', error);
     }
-  }, [messages]);
+  };
+
+  // Set up real-time subscription
+  useEffect(() => {
+    loadMessages();
+
+    const channel = supabase
+      .channel('founder-chat')
+      .on(
+        'postgres_changes',
+        {
+          event: 'INSERT',
+          schema: 'public',
+          table: 'founder_chat_messages'
+        },
+        (payload) => {
+          const newMessage = payload.new as Message;
+          setMessages(prev => [...prev, newMessage]);
+          
+          if (!newMessage.is_from_founder) {
+            toast.success('New message received!');
+          }
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, []);
 
   const handleSendMessage = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -51,38 +86,36 @@ const Chat = () => {
       return;
     }
 
-    if (!user && !currentUser) {
-      toast.error('Please log in to send messages');
-      return;
+    // For non-logged-in users, require name and email
+    if (!isLoggedIn && !user) {
+      if (!userName.trim() || !userEmail.trim()) {
+        toast.error('Please enter your name and email to send a message');
+        return;
+      }
     }
 
     setIsLoading(true);
     try {
-      const newMessage: Message = {
-        id: Date.now().toString(),
-        content: message.trim(),
-        sender: currentUser?.name || user?.email || 'Anonymous',
-        timestamp: new Date().toISOString(),
-        isFromFounder: false
-      };
-      
-      setMessages(prev => [...prev, newMessage]);
+      const senderName = userName || profile?.name || user?.user_metadata?.name || currentUser?.name || 'Anonymous';
+      const senderEmail = userEmail || profile?.email || user?.email || 'anonymous@example.com';
+
+      const { error } = await supabase
+        .from('founder_chat_messages')
+        .insert({
+          content: message.trim(),
+          sender_name: senderName,
+          sender_email: senderEmail,
+          sender_id: user?.id || null,
+          is_from_founder: isFounder,
+          is_read: false
+        });
+
+      if (error) {
+        throw error;
+      }
+
       setMessage('');
-      toast.success('Message sent to Aniketh!');
-
-      // Simulate founder response after a delay (for demo purposes)
-      setTimeout(() => {
-        const founderReply: Message = {
-          id: (Date.now() + 1).toString(),
-          content: "Thanks for reaching out! I'll get back to you soon with a detailed response.",
-          sender: 'Aniketh Shet',
-          timestamp: new Date().toISOString(),
-          isFromFounder: true
-        };
-        setMessages(prev => [...prev, founderReply]);
-        toast.success('Aniketh replied!');
-      }, 2000);
-
+      toast.success(isFounder ? 'Reply sent!' : 'Message sent to Aniketh!');
     } catch (error) {
       toast.error('Failed to send message');
       console.error('Error sending message:', error);
@@ -118,7 +151,8 @@ const Chat = () => {
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2">
                     <MessageCircle className="w-5 h-5" />
-                    Conversation
+                    Live Conversation
+                    {isFounder && <span className="text-xs bg-blue-500/30 text-blue-400 px-2 py-1 rounded-full">Founder Mode</span>}
                   </CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-4">
@@ -138,24 +172,24 @@ const Chat = () => {
                   {/* Messages */}
                   <div className="max-h-96 overflow-y-auto space-y-4">
                     {messages.map((msg) => (
-                      <div key={msg.id} className={`flex gap-3 ${msg.isFromFounder ? 'justify-start' : 'justify-end'}`}>
-                        {msg.isFromFounder && (
+                      <div key={msg.id} className={`flex gap-3 ${msg.is_from_founder ? 'justify-start' : 'justify-end'}`}>
+                        {msg.is_from_founder && (
                           <div className="w-8 h-8 bg-gradient-to-r from-blue-500 to-purple-600 rounded-full flex items-center justify-center flex-shrink-0">
                             <User className="w-4 h-4 text-white" />
                           </div>
                         )}
                         <div className={`max-w-xs lg:max-w-md px-4 py-2 rounded-lg ${
-                          msg.isFromFounder 
+                          msg.is_from_founder 
                             ? 'bg-white/10 text-left' 
                             : 'bg-gradient-to-r from-blue-500 to-purple-600 text-white text-right'
                         }`}>
-                          <p className="text-sm font-medium mb-1">{msg.sender}</p>
+                          <p className="text-sm font-medium mb-1">{msg.sender_name}</p>
                           <p className="text-sm">{msg.content}</p>
                           <p className="text-xs opacity-70 mt-1">
-                            {new Date(msg.timestamp).toLocaleTimeString()}
+                            {new Date(msg.created_at).toLocaleTimeString()}
                           </p>
                         </div>
-                        {!msg.isFromFounder && (
+                        {!msg.is_from_founder && (
                           <div className="w-8 h-8 bg-white/20 rounded-full flex items-center justify-center flex-shrink-0">
                             <User className="w-4 h-4" />
                           </div>
@@ -164,6 +198,26 @@ const Chat = () => {
                     ))}
                   </div>
 
+                  {/* User Info for Non-Logged Users */}
+                  {!isLoggedIn && !user && (
+                    <div className="grid grid-cols-2 gap-2 pt-4 border-t border-white/10">
+                      <input
+                        type="text"
+                        value={userName}
+                        onChange={(e) => setUserName(e.target.value)}
+                        placeholder="Your name"
+                        className="px-3 py-2 text-sm bg-white/10 border border-white/20 rounded-lg focus:border-white/40 transition-colors"
+                      />
+                      <input
+                        type="email"
+                        value={userEmail}
+                        onChange={(e) => setUserEmail(e.target.value)}
+                        placeholder="Your email"
+                        className="px-3 py-2 text-sm bg-white/10 border border-white/20 rounded-lg focus:border-white/40 transition-colors"
+                      />
+                    </div>
+                  )}
+
                   {/* Message Input */}
                   <form onSubmit={handleSendMessage} className="flex gap-2 pt-4 border-t border-white/10">
                     <Textarea
@@ -171,22 +225,15 @@ const Chat = () => {
                       onChange={(e) => setMessage(e.target.value)}
                       placeholder="Type your message..."
                       className="flex-1 min-h-[60px] resize-none"
-                      disabled={!user && !currentUser}
                     />
                     <Button 
                       type="submit" 
-                      disabled={isLoading || !message.trim() || (!user && !currentUser)}
+                      disabled={isLoading || !message.trim()}
                       className="bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700"
                     >
                       <Send className="w-4 h-4" />
                     </Button>
                   </form>
-
-                  {!user && !currentUser && (
-                    <p className="text-center text-foreground/60 text-sm">
-                      Please log in to send messages
-                    </p>
-                  )}
                 </CardContent>
               </Card>
             </div>
@@ -211,27 +258,28 @@ const Chat = () => {
 
               <Card className="glass">
                 <CardHeader>
-                  <CardTitle className="text-lg">Response Time</CardTitle>
+                  <CardTitle className="text-lg">Live Chat Features</CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <p className="text-foreground/70 text-sm">
-                    I typically respond within 24 hours. For urgent matters, 
-                    feel free to reach out via email as well.
-                  </p>
+                  <ul className="text-foreground/70 text-sm space-y-2">
+                    <li>• Real-time messaging</li>
+                    <li>• No login required to send messages</li>
+                    <li>• Messages stored in database</li>
+                    <li>• Founder can reply directly</li>
+                    <li>• Instant notifications</li>
+                  </ul>
                 </CardContent>
               </Card>
 
               <Card className="glass">
                 <CardHeader>
-                  <CardTitle className="text-lg">Chat Features</CardTitle>
+                  <CardTitle className="text-lg">Response Time</CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <ul className="text-foreground/70 text-sm space-y-2">
-                    <li>• Real-time messaging</li>
-                    <li>• Message history saved locally</li>
-                    <li>• Auto-responses for demos</li>
-                    <li>• Authentication required</li>
-                  </ul>
+                  <p className="text-foreground/70 text-sm">
+                    Aniketh typically responds within 24 hours. For urgent matters, 
+                    feel free to reach out via email as well.
+                  </p>
                 </CardContent>
               </Card>
             </div>

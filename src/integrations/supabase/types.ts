@@ -129,6 +129,42 @@ export type Database = {
         }
         Relationships: []
       }
+      founder_chat_messages: {
+        Row: {
+          content: string
+          created_at: string
+          id: string
+          is_from_founder: boolean
+          is_read: boolean
+          sender_email: string
+          sender_id: string | null
+          sender_name: string
+          updated_at: string
+        }
+        Insert: {
+          content: string
+          created_at?: string
+          id?: string
+          is_from_founder?: boolean
+          is_read?: boolean
+          sender_email: string
+          sender_id?: string | null
+          sender_name: string
+          updated_at?: string
+        }
+        Update: {
+          content?: string
+          created_at?: string
+          id?: string
+          is_from_founder?: boolean
+          is_read?: boolean
+          sender_email?: string
+          sender_id?: string | null
+          sender_name?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       founder_messages: {
         Row: {
           admin_reply: string | null

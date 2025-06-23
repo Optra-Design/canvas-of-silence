@@ -1,7 +1,7 @@
-
 import React from 'react';
 import Navigation from '../components/Navigation';
-import { MapPin, Coffee, Heart, Code, Palette, Lightbulb } from 'lucide-react';
+import { MapPin, Coffee, Heart, Code, Palette, Lightbulb, MessageCircle } from 'lucide-react';
+import { Link } from 'react-router-dom';
 
 const Founder = () => {
   const journey = [
@@ -79,7 +79,7 @@ const Founder = () => {
                   problems and drive tangible results for my clients.
                 </p>
                 
-                <div className="flex flex-wrap gap-4">
+                <div className="flex flex-wrap gap-4 mb-6">
                   <div className="flex items-center gap-2 text-foreground/70">
                     <MapPin className="w-4 h-4" />
                     <span>Bangalore, India</span>
@@ -93,6 +93,15 @@ const Founder = () => {
                     <span>Design perfectionist</span>
                   </div>
                 </div>
+
+                {/* Chat Button */}
+                <Link 
+                  to="/chat"
+                  className="inline-flex items-center gap-3 bg-gradient-to-r from-blue-500 to-purple-600 text-white px-6 py-3 rounded-full font-semibold transition-all duration-300 hover:scale-105 glow-hover"
+                >
+                  <MessageCircle className="w-5 h-5" />
+                  Chat with me directly
+                </Link>
               </div>
               
               <div className="relative">

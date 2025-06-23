@@ -1,7 +1,7 @@
 
 import React from 'react';
 import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
-import Index from './pages/Index';
+import Index from './pages/Index'; 
 import About from './pages/About';
 import Services from './pages/Services';
 import Work from './pages/Work';
@@ -20,7 +20,6 @@ import { UserProvider } from './contexts/UserContext';
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from 'sonner'
 import EnhancedOptraBot from './components/EnhancedOptraBot';
-import FounderChatBubble from './components/FounderChatBubble';
 
 const queryClient = new QueryClient();
 
@@ -48,11 +47,10 @@ function App() {
                   <Route path="*" element={<NotFound />} />
                 </Routes>
                 
-                {/* Chat bubbles positioned properly */}
+                {/* Chat bot positioned properly */}
                 <div className="fixed bottom-6 right-6 z-50 flex items-center justify-center">
                   <EnhancedOptraBot />
                 </div>
-                <FounderChatBubble />
                 
                 <Toaster />
               </div>
